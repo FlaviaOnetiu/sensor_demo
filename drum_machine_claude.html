@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Beat School — Learn-to-Play Drum Machine</title>
+<style>
+  :root{
+    --bg:#14151a;
+    --panel:#1c1e26;
+    --panel2:#22242e;
+    --line:#31333f;
+    --text:#eef0f5;
+    --dim:#9195a6;
+    --kick:#ff6b6b;
+    --snare:#ffd93d;
+    --hihat:#6bcBef;
+    --clap:#b98bff;
+    --accent:#4be3a0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#0f1015,#14151a 200px);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:20px;
+  }
+  h1{margin:0 0 4px;font-size:1.5rem;}
+  .sub{color:var(--dim);margin:0 0 20px;font-size:.92rem;}
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    gap:18px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+  }
+  .transport{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--panel2);
+    color:var(--text);
+    padding:9px 14px;
+    font-size:.9rem;
+    transition:background .15s, transform .1s;
+  }
+  button:hover{background:#2b2e3a;}
+  button:active{transform:scale(.97);}
+  #playBtn{
+    background:var(--accent);
+    color:#0c1a14;
+    font-weight:700;
+    border:none;
+    padding:10px 20px;
+  }
+  #playBtn.playing{background:#ff6b6b;color:#2a0d0d;}
+  .field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:.85rem;
+    color:var(--dim);
+  }
+  input[type=range]{accent-color:var(--accent);}
+  select{
+    background:var(--panel2);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px 8px;
+    font-family:inherit;
+  }
+
+  .grid-wrap{overflow-x:auto;}
+  .track-row{
+    display:grid;
+    grid-template-columns: 90px repeat(16, 1fr);
+    gap:5px;
+    align-items:center;
+    margin-bottom:6px;
+    min-width:640px;
+  }
+  .track-label{
+    font-size:.82rem;
+    font-weight:600;
+    padding-right:6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .step{
+    aspect-ratio:1/1;
+    border-radius:6px;
+    background:#2a2c37;
+    border:1px solid var(--line);
+    cursor:pointer;
+    position:relative;
+  }
+  .step:hover{background:#33364400;filter:brightness(1.3);}
+  .step.beat{border-color:#454858;}
+  .step.on{background:var(--track-color, var(--accent));border-color:transparent;}
+  .step.current{outline:2px solid #fff;outline-offset:1px;}
+  .beat-nums{
+    display:grid;
+    grid-template-columns: 90px repeat(16,1fr);
+    gap:5px;
+    margin-bottom:8px;
+    min-width:640px;
+    font-size:.68rem;
+    color:var(--dim);
+  }
+  .beat-nums span{text-align:center;}
+
+  .lesson-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .lesson-tabs button{
+    padding:6px 10px;
+    font-size:.78rem;
+  }
+  .lesson-tabs button.active{
+    background:var(--accent);
+    color:#0c1a14;
+    border-color:transparent;
+    font-weight:700;
+  }
+  .lesson-body h3{
+    margin:0 0 6px;
+    font-size:1rem;
+  }
+  .lesson-body p{
+    color:#cdd0dc;
+    font-size:.87rem;
+    line-height:1.5;
+    margin:0 0 10px;
+  }
+  .lesson-body ul{
+    margin:0 0 10px;
+    padding-left:18px;
+    color:#cdd0dc;
+    font-size:.87rem;
+    line-height:1.5;
+  }
+  .preset-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:6px;
+  }
+  .preset-btn{
+    text-align:left;
+    font-size:.82rem;
+    padding:8px 10px;
+  }
+  .preset-btn small{
+    display:block;
+    color:var(--dim);
+    font-weight:400;
+    margin-top:2px;
+  }
+  .badge{
+    display:inline-block;
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:2px 8px;
+    font-size:.72rem;
+    color:var(--accent);
+    margin-bottom:8px;
+  }
+  .footer-note{
+    color:var(--dim);
+    font-size:.75rem;
+    margin-top:16px;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<h1>🥁 Beat School</h1>
+<p class="sub">A step-sequencer drum machine that explains the rhythms as you build them.</p>
+
+<div class="layout">
+
+  <div class="panel">
+    <div class="transport">
+      <button id="playBtn">▶ Play</button>
+      <div class="field">
+        Tempo
+        <input type="range" id="tempo" min="60" max="180" value="110">
+        <span id="tempoVal">110 BPM</span>
+      </div>
+      <div class="field">
+        Swing
+        <input type="range" id="swing" min="0" max="60" value="0">
+        <span id="swingVal">0%</span>
+      </div>
+      <button id="clearBtn">Clear</button>
+      <button id="randomBtn">Random Fill</button>
+    </div>
+
+    <div class="grid-wrap">
+      <div class="beat-nums" id="beatNums"></div>
+      <div id="tracks"></div>
+    </div>
+
+    <p class="footer-note">Tap any square to toggle a hit. The brighter columns mark beats 1, 5, 9, 13 — the "downbeats" — so you can see where you are in the bar. Sounds are synthesized live with the Web Audio API, no samples needed.</p>
+  </div>
+
+  <div class="panel">
+    <span class="badge" id="lessonBadge">LESSON</span>
+    <div class="lesson-tabs" id="lessonTabs"></div>
+    <div class="lesson-body" id="lessonBody"></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const TRACKS = [
+    {id:'kick',  name:'Kick',  color:'var(--kick)'},
+    {id:'snare', name:'Snare', color:'var(--snare)'},
+    {id:'hihat', name:'Hi-Hat',color:'var(--hihat)'},
+    {id:'clap',  name:'Clap',  color:'var(--clap)'},
+  ];
+  const STEPS = 16;
+  let pattern = {};
+  TRACKS.forEach(t => pattern[t.id] = new Array(STEPS).fill(false));
+
+  // ---------- Audio ----------
+  const ACtx = window.AudioContext || window.webkitAudioContext;
+  const actx = new ACtx();
+
+  function envGain(param, t0, peak, attack, decay){
+    param.cancelScheduledValues(t0);
+    param.setValueAtTime(0, t0);
+    param.linearRampToValueAtTime(peak, t0 + attack);
+    param.exponentialRampToValueAtTime(0.0001, t0 + attack + decay);
+  }
+
+  function playKick(t0){
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, t0);
+    osc.frequency.exponentialRampToValueAtTime(45, t0 + 0.12);
+    envGain(gain.gain, t0, 1, 0.001, 0.28);
+    osc.connect(gain).connect(actx.destination);
+    osc.start(t0); osc.stop(t0 + 0.3);
+  }
+
+  function playSnare(t0){
+    const bufferSize = actx.sampleRate * 0.2;
+    const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+    const noise = actx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseFilter = actx.createBiquadFilter();
+    noiseFilter.type = 'highpass';
+    noiseFilter.frequency.value = 1000;
+    const noiseGain = actx.createGain();
+    envGain(noiseGain.gain, t0, 1, 0.001, 0.15);
+    noise.connect(noiseFilter).connect(noiseGain).connect(actx.destination);
+
+    const osc = actx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = 180;
+    const oscGain = actx.createGain();
+    envGain(oscGain.gain, t0, 0.7, 0.001, 0.1);
+    osc.connect(oscGain).connect(actx.destination);
+
+    noise.start(t0); noise.stop(t0+0.2);
+    osc.start(t0); osc.stop(t0+0.12);
+  }
+
+  function playHat(t0){
+    const bufferSize = actx.sampleRate * 0.08;
+    const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+    const noise = actx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = actx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 7000;
+    const gain = actx.createGain();
+    envGain(gain.gain, t0, 0.5, 0.001, 0.05);
+    noise.connect(filter).connect(gain).connect(actx.destination);
+    noise.start(t0); noise.stop(t0+0.08);
+  }
+
+  function playClap(t0){
+    for(let i=0;i<3;i++){
+      const dt = t0 + i*0.012;
+      const bufferSize = actx.sampleRate * 0.05;
+      const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for(let j=0;j<bufferSize;j++) data[j] = Math.random()*2-1;
+      const noise = actx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = actx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 1200;
+      filter.Q.value = 1.2;
+      const gain = actx.createGain();
+      envGain(gain.gain, dt, 0.6, 0.001, 0.08);
+      noise.connect(filter).connect(gain).connect(actx.destination);
+      noise.start(dt); noise.stop(dt+0.06);
+    }
+  }
+
+  const SOUNDS = {kick:playKick, snare:playSnare, hihat:playHat, clap:playClap};
+
+  // ---------- Sequencer / scheduling ----------
+  let isPlaying = false;
+  let currentStep = 0;
+  let nextNoteTime = 0;
+  let tempo = 110;
+  let swing = 0;
+  let timerID = null;
+  const lookahead = 25;
+  const scheduleAheadTime = 0.1;
+
+  function stepLength(){
+    return 60.0 / tempo / 4; // 16th notes
+  }
+
+  function nextNote(){
+    const swingAmt = swing/100 * stepLength() * 0.6;
+    const isOffbeat = currentStep % 2 === 1;
+    nextNoteTime += stepLength() + (isOffbeat ? swingAmt : 0) - (isOffbeat ? 0 : 0);
+    currentStep = (currentStep + 1) % STEPS;
+  }
+
+  let scheduledSteps = [];
+
+  function scheduleNote(stepIdx, time){
+    TRACKS.forEach(t => {
+      if(pattern[t.id][stepIdx]) SOUNDS[t.id](time);
+    });
+    scheduledSteps.push({step: stepIdx, time: time});
+  }
+
+  function scheduler(){
+    while(nextNoteTime < actx.currentTime + scheduleAheadTime){
+      scheduleNote(currentStep, nextNoteTime);
+      nextNote();
+    }
+    timerID = setTimeout(scheduler, lookahead);
+  }
+
+  function drawPlayhead(){
+    const now = actx.currentTime;
+    while(scheduledSteps.length && scheduledSteps[0].time < now){
+      const s = scheduledSteps.shift();
+      document.querySelectorAll('.step.current').forEach(el => el.classList.remove('current'));
+      if(isPlaying){
+        document.querySelectorAll(`.step[data-step="${s.step}"]`).forEach(el => el.classList.add('current'));
+      }
+    }
+    requestAnimationFrame(drawPlayhead);
+  }
+  requestAnimationFrame(drawPlayhead);
+
+  function startPlayback(){
+    if(isPlaying) return;
+    if(actx.state === 'suspended') actx.resume();
+    isPlaying = true;
+    currentStep = 0;
+    nextNoteTime = actx.currentTime + 0.05;
+    scheduler();
+    document.getElementById('playBtn').textContent = '■ Stop';
+    document.getElementById('playBtn').classList.add('playing');
+  }
+  function stopPlayback(){
+    isPlaying = false;
+    clearTimeout(timerID);
+    document.getElementById('playBtn').textContent = '▶ Play';
+    document.getElementById('playBtn').classList.remove('playing');
+    document.querySelectorAll('.step.current').forEach(el => el.classList.remove('current'));
+  }
+
+  // ---------- Grid UI ----------
+  const tracksEl = document.getElementById('tracks');
+  const beatNumsEl = document.getElementById('beatNums');
+
+  let bn = '<span></span>';
+  for(let i=0;i<STEPS;i++){
+    bn += `<span>${ (i%4===0) ? (i/4+1) : '·' }</span>`;
+  }
+  beatNumsEl.innerHTML = bn;
+
+  TRACKS.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'track-row';
+    row.innerHTML = `<div class="track-label"><span class="dot" style="background:${t.color}"></span>${t.name}</div>`;
+    for(let i=0;i<STEPS;i++){
+      const step = document.createElement('div');
+      step.className = 'step' + (i%4===0 ? ' beat' : '');
+      step.dataset.track = t.id;
+      step.dataset.step = i;
+      step.style.setProperty('--track-color', t.color);
+      step.addEventListener('click', () => {
+        pattern[t.id][i] = !pattern[t.id][i];
+        step.classList.toggle('on', pattern[t.id][i]);
+        if(!isPlaying && pattern[t.id][i]){
+          if(actx.state === 'suspended') actx.resume();
+          SOUNDS[t.id](actx.currentTime);
+        }
+      });
+      row.appendChild(step);
+    }
+    tracksEl.appendChild(row);
+  });
+
+  function redrawGrid(){
+    TRACKS.forEach(t => {
+      pattern[t.id].forEach((on, i) => {
+        document.querySelectorAll(`.step[data-track="${t.id}"][data-step="${i}"]`)
+          .forEach(el => el.classList.toggle('on', on));
+      });
+    });
+  }
+
+  // ---------- Controls ----------
+  document.getElementById('playBtn').addEventListener('click', () => {
+    isPlaying ? stopPlayback() : startPlayback();
+  });
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    TRACKS.forEach(t => pattern[t.id] = new Array(STEPS).fill(false));
+    redrawGrid();
+  });
+  document.getElementById('randomBtn').addEventListener('click', () => {
+    TRACKS.forEach(t => {
+      pattern[t.id] = pattern[t.id].map((_,i) => {
+        if(t.id==='hihat') return Math.random() < 0.55;
+        if(t.id==='kick') return i%4===0 ? Math.random()<0.85 : Math.random()<0.15;
+        if(t.id==='snare') return (i===4||i===12) ? Math.random()<0.9 : Math.random()<0.08;
+        return Math.random() < 0.12;
+      });
+    });
+    redrawGrid();
+  });
+  document.getElementById('tempo').addEventListener('input', e => {
+    tempo = parseInt(e.target.value,10);
+    document.getElementById('tempoVal').textContent = tempo + ' BPM';
+  });
+  document.getElementById('swing').addEventListener('input', e => {
+    swing = parseInt(e.target.value,10);
+    document.getElementById('swingVal').textContent = swing + '%';
+  });
+
+  function loadPattern(map){
+    TRACKS.forEach(t => pattern[t.id] = new Array(STEPS).fill(false));
+    Object.keys(map).forEach(id => {
+      map[id].forEach(i => { pattern[id][i] = true; });
+    });
+    redrawGrid();
+  }
+  window.__loadPattern = loadPattern; // used by lesson presets
+
+  // ---------- Lessons ----------
+  const LESSONS = {
+    basics: {
+      title:'Basics',
+      html: `
+        <h3>How this grid works</h3>
+        <p>Each row is a drum sound. Each column is a <b>16th-note step</b> — one bar (measure) of music is cut into 16 equal slices. The dim numbers above the grid mark beats 1, 2, 3, 4: each beat contains 4 steps.</p>
+        <p>At a normal tempo, most grooves live inside three roles:</p>
+        <ul>
+          <li><b>Kick</b> — the low "boom," usually on strong beats. It's the foundation.</li>
+          <li><b>Snare/Clap</b> — the sharp "crack," almost always on beats 2 and 4 in most pop/rock/hip-hop (this is called the <b>backbeat</b>).</li>
+          <li><b>Hi-Hat</b> — fast, steady ticking that keeps the sense of time moving between the kick/snare hits.</li>
+        </ul>
+        <p>Try this: click step 1, 5, 9, 13 on the Kick row, and steps 5 and 13 on the Snare row. Press Play. You've just built the most common beat skeleton in Western pop music.</p>
+      `
+    },
+    downbeat: {
+      title:'Beats & Subdivision',
+      html: `
+        <h3>Counting "1 e & a"</h3>
+        <p>Drummers count a bar of 16th notes as <b>"1 e & a, 2 e & a, 3 e & a, 4 e & a."</b> Each number/word is one of your 16 steps.</p>
+        <ul>
+          <li>The numbered steps (1,2,3,4) are <b>downbeats</b> — the strongest, most "on" feeling.</li>
+          <li>The "&" steps (halfway between beats) are <b>upbeats</b> — hitting these feels bouncy.</li>
+          <li>The "e" and "a" steps are the finest subdivision — used for fills, rolls, or busy hi-hats.</li>
+        </ul>
+        <p>Turn on only the hi-hat row on every downbeat (steps 1,5,9,13) and play it. Now also add the "&" steps (3,7,11,15). Notice how much more energy the groove has with upbeats added — same tempo, different feel.</p>
+      `
+    },
+    fourfloor: {
+      title:'Four-on-the-Floor',
+      html: `
+        <h3>House / Disco / Techno</h3>
+        <p>The defining trick of house and disco music: put the <b>kick on every single beat</b> — steps 1, 5, 9, 13. It creates a relentless, danceable pulse. Open or closed hi-hats usually fill the off-beats.</p>
+        <div class="preset-list">
+          <button class="preset-btn" data-preset="fourfloor">Load: Four-on-the-Floor
+            <small>Kick on every beat, clap on 2 &amp; 4, hats on the &amp;s</small>
+          </button>
+        </div>
+      `,
+      preset: { kick:[0,4,8,12], clap:[4,12], hihat:[2,6,10,14] }
+    },
+    backbeat: {
+      title:'Backbeat Groove',
+      html: `
+        <h3>Rock / Pop / Boom-Bap</h3>
+        <p>This is the DNA of rock and hip-hop drumming: <b>snare hits hard on beats 2 and 4</b>, while the kick plays a simpler, syncopated pattern around it — often on 1 and the "and" of 2, or 1 and 3.</p>
+        <div class="preset-list">
+          <button class="preset-btn" data-preset="backbeat">Load: Classic Backbeat
+            <small>Kick on 1 &amp; the "and" of 2, snare on 2 &amp; 4, steady 8th hats</small>
+          </button>
+          <button class="preset-btn" data-preset="boombap">Load: Boom-Bap (Hip-Hop)
+            <small>Swung, sparser kick pattern, laid-back snare</small>
+          </button>
+        </div>
+      `,
+      presets: {
+        backbeat: { kick:[0,6,8], snare:[4,12], hihat:[0,2,4,6,8,10,12,14] },
+        boombap:  { kick:[0,10], snare:[4,12], hihat:[0,2,4,6,8,10,12,14] }
+      }
+    },
+    trap: {
+      title:'Trap Hi-Hats',
+      html: `
+        <h3>Rolls & triplet-feel hats</h3>
+        <p>Modern trap beats keep kick/snare fairly simple (often kick + clap on a backbeat-like pattern) but make the <b>hi-hats do the work</b>: fast rolls of consecutive 16th (or faster) hits create tension and bounce.</p>
+        <div class="preset-list">
+          <button class="preset-btn" data-preset="trap">Load: Trap Roll
+            <small>Kick + clap backbeat, hi-hat rolls on beats 2 &amp; 4 run-ups</small>
+          </button>
+        </div>
+      `,
+      preset: { kick:[0,7,10], clap:[4,12], hihat:[0,2,4,5,6,7,8,10,12,13,14,15] }
+    },
+    syncopation: {
+      title:'Syncopation',
+      html: `
+        <h3>Playing "against" the beat</h3>
+        <p><b>Syncopation</b> means accenting a weak part of the beat (an "&" or "a") instead of the strong downbeat — it's what makes a groove feel like it's pushing or pulling instead of marching straight ahead.</p>
+        <p>Try this experiment: set Kick to step 1 only. Now add one more kick hit on step 7 (the "and" of beat 2) instead of step 5 (beat 2 itself). That single shift instantly makes the pattern feel funkier and less predictable — that's syncopation in action.</p>
+        <div class="preset-list">
+          <button class="preset-btn" data-preset="syncop">Load: Syncopation Demo
+            <small>Kick hits deliberately off the downbeats</small>
+          </button>
+        </div>
+      `,
+      preset: { kick:[0,3,7,10], snare:[4,12], hihat:[0,2,4,6,8,10,12,14] }
+    },
+    challenge: {
+      title:'Try It Yourself',
+      html: `
+        <h3>Challenges</h3>
+        <ul>
+          <li><b>Level 1:</b> Build a beat with kick on 1 &amp; 9, snare on 5 &amp; 13, hats every other step.</li>
+          <li><b>Level 2:</b> Take any preset from another tab and remove one kick hit — does it still feel complete?</li>
+          <li><b>Level 3:</b> Add a clap layered with the snare on just beat 4 (step 13) to build a bigger accent — this is called "layering."</li>
+          <li><b>Level 4:</b> Set swing to ~30% on a backbeat pattern. Notice how the upbeats get delayed slightly — this is the "swing" feel used in jazz, hip-hop, and shuffle grooves.</li>
+        </ul>
+        <p>Use <b>Random Fill</b> for inspiration, then hand-edit the result — that's how a lot of producers start a beat.</p>
+      `
+    }
+  };
+
+  const tabsEl = document.getElementById('lessonTabs');
+  const bodyEl = document.getElementById('lessonBody');
+  const order = ['basics','downbeat','fourfloor','backbeat','trap','syncopation','challenge'];
+
+  order.forEach(key => {
+    const btn = document.createElement('button');
+    btn.textContent = LESSONS[key].title;
+    btn.dataset.key = key;
+    btn.addEventListener('click', () => showLesson(key));
+    tabsEl.appendChild(btn);
+  });
+
+  function showLesson(key){
+    order.forEach(k => {
+      tabsEl.querySelector(`[data-key="${k}"]`).classList.toggle('active', k===key);
+    });
+    bodyEl.innerHTML = LESSONS[key].html;
+    bodyEl.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const presetKey = btn.dataset.preset;
+        const lesson = LESSONS[key];
+        const map = lesson.preset || (lesson.presets && lesson.presets[presetKey]);
+        if(map) loadPattern(map);
+      });
+    });
+  }
+  showLesson('basics');
+
+})();
+</script>
+</body>
+</html>
