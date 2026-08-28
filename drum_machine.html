@@ -1,0 +1,2410 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>BeatLab — Drum Machine</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #111;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+
+    nav {
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6%;
+      background: #181818;
+      border-bottom: 1px solid #333;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #ff5c35;
+    }
+
+    nav a {
+      color: #aaa;
+      text-decoration: none;
+      margin-left: 25px;
+    }
+
+    nav a:hover {
+      color: white;
+    }
+
+    /* HERO */
+
+    .hero {
+      text-align: center;
+      padding: 70px 20px 45px;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: 1;
+      margin-bottom: 15px;
+    }
+
+    .hero h1 span {
+      color: #ff5c35;
+    }
+
+    .hero p {
+      color: #999;
+      font-size: 1.1rem;
+    }
+
+    /* MACHINE */
+
+    .machine {
+      width: 92%;
+      max-width: 1200px;
+      margin: auto;
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.4);
+    }
+
+    /* CONTROLS */
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 35px;
+    }
+
+    .transport {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .play {
+      background: #ff5c35;
+      color: white;
+      padding: 15px 28px;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .stop {
+      background: #333;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: .9;
+    }
+
+    .tempo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tempo input {
+      width: 180px;
+    }
+
+    .bpm {
+      font-size: 1.5rem;
+      font-weight: bold;
+      min-width: 80px;
+    }
+
+    /* SEQUENCER */
+
+    .sequencer {
+      overflow-x: auto;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 110px repeat(16, 1fr);
+      gap: 6px;
+      min-width: 900px;
+      margin-bottom: 8px;
+    }
+
+    .instrument {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      color: #ddd;
+    }
+
+    .step {
+      aspect-ratio: 1;
+      min-height: 42px;
+      border-radius: 6px;
+      background: #292929;
+      border: 1px solid #3a3a3a;
+      transition: .1s;
+    }
+
+    .step:hover {
+      background: #444;
+    }
+
+    .step.active {
+      background: #ff5c35;
+      border-color: #ff5c35;
+    }
+
+    .step.current {
+      box-shadow: 0 0 0 2px white inset;
+    }
+
+    /* BEAT NUMBERS */
+
+    .beat-numbers {
+      display: grid;
+      grid-template-columns: 110px repeat(16, 1fr);
+      gap: 6px;
+      min-width: 900px;
+      margin-bottom: 8px;
+    }
+
+    .beat-number {
+      text-align: center;
+      color: #777;
+      font-size: .75rem;
+    }
+
+    /* TOOLS */
+
+    .tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid #333;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .tool-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tool {
+      background: #292929;
+      color: #ddd;
+      padding: 11px 17px;
+      border-radius: 8px;
+    }
+
+    .tool:hover {
+      background: #3a3a3a;
+    }
+
+    /* HELP */
+
+    .help {
+      width: 92%;
+      max-width: 1000px;
+      margin: 70px auto;
+      text-align: center;
+    }
+
+    .help h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+
+    .help p {
+      color: #999;
+      margin-bottom: 30px;
+    }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .help-card {
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: 15px;
+      padding: 25px;
+    }
+
+    .help-card h3 {
+      margin-bottom: 10px;
+      color: #ff5c35;
+    }
+
+    .help-card p {
+      margin: 0;
+      font-size: .95rem;
+    }
+
+    /* FOOTER */
+
+    footer {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+      border-top: 1px solid #222;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 700px) {
+
+      nav a {
+        display: none;
+      }
+
+      .machine {
+        padding: 18px;
+      }
+
+      .help-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+
+  <nav>
+
+    <div class="logo">
+      Beat<span>Lab</span> 🥁
+    </div>
+
+    <div>
+      <a href="#machine">Drum Machine</a>
+      <a href="#learn">How It Works</a>
+    </div>
+
+  </nav>
+
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <h1>Make a <span>Beat.</span></h1>
+
+    <p>
+      Build drum patterns, experiment with rhythm,
+      and make your own groove.
+    </p>
+
+  </section>
+
+
+  <!-- DRUM MACHINE -->
+
+  <main class="machine" id="machine">
+
+    <!-- CONTROLS -->
+
+    <div class="controls">
+
+      <div class="transport">
+
+        <button class="play" id="playButton">
+          ▶ Play
+        </button>
+
+        <button class="stop" id="stopButton">
+          ■ Stop
+        </button>
+
+      </div>
+
+
+      <div class="tempo">
+
+        <strong>BPM</strong>
+
+        <input
+          type="range"
+          id="tempo"
+          min="60"
+          max="180"
+          value="100"
+        >
+
+        <div class="bpm" id="bpmValue">
+          100
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- SEQUENCER -->
+
+    <div class="sequencer">
+
+      <div class="beat-numbers">
+
+        <div></div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+      </div>
+
+
+      <!-- KICK -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🥁 Kick
+        </div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+      </div>
+
+
+      <!-- SNARE -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🥁 Snare
+        </div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+      </div>
+
+
+      <!-- HI-HAT -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🔔 Hi-Hat
+        </div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+      </div>
+
+
+      <!-- CLAP -->
+
+      <div class="row">
+
+        <div class="instrument">
+          👏 Clap
+        </div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+      </div>
+
+
+      <!-- PERCUSSION -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🪘 Perc
+        </div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TOOLS -->
+
+    <div class="tools">
+
+      <div class="tool-buttons">
+
+        <button class="tool" id="randomButton">
+          🎲 Random Beat
+        </button>
+
+        <button class="tool" id="clearButton">
+          Clear
+        </button>
+
+      </div>
+
+      <div>
+        <span style="color:#777">
+          Click the squares to build your beat
+        </span>
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- LEARNING -->
+
+  <section class="help" id="learn">
+
+    <h2>Learn the Basics</h2>
+
+    <p>
+      You don't need to be a drummer to start making beats.
+    </p>
+
+
+    <div class="help-grid">
+
+      <div class="help-card">
+
+        <h3>🥁 Kick</h3>
+
+        <p>
+          The kick creates the main pulse of your beat.
+          Try placing it on steps 1 and 9.
+        </p>
+
+      </div>
+
+
+      <div class="help-card">
+
+        <h3>👏 Snare</h3>
+
+        <p>
+          The snare usually hits on beats 2 and 4.
+          This gives the groove its backbeat.
+        </p>
+
+      </div>
+
+
+      <div class="help-card">
+
+        <h3>🔔 Hi-Hat</h3>
+
+        <p>
+          Hi-hats fill the spaces between kicks and snares.
+          Try activating every other step.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <footer>
+
+    <p>
+      BeatLab 🥁 — Make something that sounds good.
+    </p>
+
+  </footer>
+
+
+  <script>
+
+    /*
+      AUDIO ENGINE
+      Uses the browser's Web Audio API
+      so the drum sounds are generated
+      directly in the browser.
+    */
+
+    let audioContext;
+
+    let isPlaying = false;
+
+    let currentStep = 0;
+
+    let timer;
+
+    const steps = 16;
+
+
+    const tempoSlider =
+      document.getElementById("tempo");
+
+    const bpmValue =
+      document.getElementById("bpmValue");
+
+
+    /* TEMPO */
+
+    tempoSlider.addEventListener("input", () => {
+
+      bpmValue.textContent =
+        tempoSlider.value;
+
+    });
+
+
+    /* AUDIO CONTEXT */
+
+    function getAudioContext() {
+
+      if (!audioContext) {
+
+        audioContext =
+          new (window.AudioContext ||
+          window.webkitAudioContext)();
+
+      }
+
+      return audioContext;
+
+    }
+
+
+    /* KICK */
+
+    function playKick() {
+
+      const ctx = getAudioContext();
+
+      const oscillator =
+        ctx.createOscillator();
+
+      const gain =
+        ctx.createGain();
+
+      oscillator.type = "sine";
+
+      oscillator.frequency.setValueAtTime(
+        150,
+        ctx.currentTime
+      );
+
+      oscillator.frequency.exponentialRampToValueAtTime(
+        50,
+        ctx.currentTime + 0.12
+      );
+
+      gain.gain.setValueAtTime(
+        1,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + 0.3
+      );
+
+      oscillator.connect(gain);
+
+      gain.connect(ctx.destination);
+
+      oscillator.start();
+
+      oscillator.stop(
+        ctx.currentTime + 0.3
+      );
+
+    }
+
+
+    /* SNARE */
+
+    function playSnare() {
+
+      const ctx = getAudioContext();
+
+      const bufferSize =
+        ctx.sampleRate * 0.2;
+
+      const buffer =
+        ctx.createBuffer(
+          1,
+          bufferSize,
+          ctx.sampleRate
+        );
+
+      const data =
+        buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+
+        data[i] =
+          Math.random() * 2 - 1;
+
+      }
+
+      const noise =
+        ctx.createBufferSource();
+
+      noise.buffer = buffer;
+
+      const gain =
+        ctx.createGain();
+
+      gain.gain.setValueAtTime(
+        .5,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .2
+      );
+
+      noise.connect(gain);
+
+      gain.connect(ctx.destination);
+
+      noise.start();
+
+    }
+
+
+    /* HI HAT */
+
+    function playHat() {
+
+      const ctx = getAudioContext();
+
+      const bufferSize =
+        ctx.sampleRate * 0.08;
+
+      const buffer =
+        ctx.createBuffer(
+          1,
+          bufferSize,
+          ctx.sampleRate
+        );
+
+      const data =
+        buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+
+        data[i] =
+          Math.random() * 2 - 1;
+
+      }
+
+      const noise =
+        ctx.createBufferSource();
+
+      noise.buffer = buffer;
+
+      const filter =
+        ctx.createBiquadFilter();
+
+      filter.type = "highpass";
+
+      filter.frequency.value = 5000;
+
+      const gain =
+        ctx.createGain();
+
+      gain.gain.setValueAtTime(
+        .25,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .08
+      );
+
+      noise
+        .connect(filter)
+        .connect(gain)
+        .connect(ctx.destination);
+
+      noise.start();
+
+    }
+
+
+    /* CLAP */
+
+    function playClap() {
+
+      playSnare();
+
+      setTimeout(
+        playSnare,
+        25
+      );
+
+      setTimeout(
+        playSnare,
+        50
+      );
+
+    }
+
+
+    /* PERCUSSION */
+
+    function playPerc() {
+
+      const ctx = getAudioContext();
+
+      const oscillator =
+        ctx.createOscillator();
+
+      const gain =
+        ctx.createGain();
+
+      oscillator.type = "triangle";
+
+      oscillator.frequency.value = 500;
+
+      gain.gain.setValueAtTime(
+        .35,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .12
+      );
+
+      oscillator
+        .connect(gain)
+        .connect(ctx.destination);
+
+      oscillator.start();
+
+      oscillator.stop(
+        ctx.currentTime + .12
+      );
+
+    }
+
+
+    /* PLAY SOUND */
+
+    function playSound(sound) {
+
+      if (sound === "kick")
+        playKick();
+
+      if (sound === "snare")
+        playSnare();
+
+      if (sound === "hat")
+        playHat();
+
+      if (sound === "clap")
+        playClap();
+
+      if (sound === "perc")
+        playPerc();
+
+    }
+
+
+    /* GET ALL STEPS */
+
+    function getRows() {
+
+      return document.querySelectorAll(".row");
+
+    }
+
+
+    /* PLAY STEP */
+
+    function playStep() {
+
+      const rows =
+        getRows();
+
+      rows.forEach(row => {
+
+        const stepElements =
+          row.querySelectorAll(".step");
+
+        stepElements.forEach(
+          step => step.classList.remove("current")
+        );
+
+        const current =
+          stepElements[currentStep];
+
+        current.classList.add("current");
+
+        if (current.classList.contains("active")) {
+
+          playSound(
+            current.dataset.sound
+          );
+
+        }
+
+      });
+
+      currentStep++;
+
+      if (currentStep >= steps) {
+
+        currentStep = 0;
+
+      }
+
+    }
+
+
+    /* START */
+
+    function start() {
+
+      if (isPlaying)
+        return;
+
+      getAudioContext();
+
+      isPlaying = true;
+
+      currentStep = 0;
+
+      const bpm =
+        Number(tempoSlider.value);
+
+      const interval =
+        60000 / bpm / 4;
+
+      playStep();
+
+      timer =
+        setInterval(
+          playStep,
+          interval
+        );
+
+      document.getElementById(
+        "playButton"
+      ).textContent = "⏸ Playing";
+
+    }
+
+
+    /* STOP */
+
+    function stop() {
+
+      isPlaying = false;
+
+      clearInterval(timer);
+
+      document.querySelectorAll(".step")
+        .forEach(step => {
+
+          step.classList.remove("current");
+
+        });
+
+      document.getElementById(
+        "playButton"
+      ).textContent = "▶ Play";
+
+    }
+
+
+    /* PLAY BUTTON */
+
+    document.getElementById(
+      "playButton"
+    ).addEventListener(
+      "click",
+      () => {
+
+        if (isPlaying) {
+
+          stop();
+
+        } else {
+
+          start();
+
+        }
+
+      }
+    );
+
+
+    /* STOP BUTTON */
+
+    document.getElementById(
+      "stopButton"
+    ).addEventListener(
+      "click",
+      stop
+    );
+
+
+    /* STEP CLICK */
+
+    document.querySelectorAll(".step")
+      .forEach(step => {
+
+        step.addEventListener(
+          "click",
+          () => {
+
+            step.classList.toggle("active");
+
+            playSound(
+              step.dataset.sound
+            );
+
+          }
+        );
+
+      });
+
+
+    /* CLEAR */
+
+    document.getElementById(
+      "clearButton"
+    ).addEventListener(
+      "click",
+      () => {
+
+        document.querySelectorAll(".step")
+          .forEach(step => {
+
+            step.classList.remove("active");
+
+          });
+
+      }
+    );
+
+
+    /* RANDOM BEAT */
+
+    document.getElementById(
+      "randomButton"
+    ).addEventListener(
+      "click",
+      () => {
+
+        document.querySelectorAll(".step")
+          .forEach(step => {
+
+            step.classList.remove("active");
+
+            if (Math.random() < .25) {
+
+              step.classList.add("active");
+
+            }
+
+          });
+
+      }
+    );
+
+
+    /* DEFAULT BEAT */
+
+    const rows =
+      document.querySelectorAll(".row");
+
+
+    // Kick: 1, 5, 9, 13
+    [0, 4, 8, 12].forEach(i => {
+
+      rows[0]
+        .querySelectorAll(".step")[i]
+        .classList.add("active");
+
+    });
+
+
+    // Snare: 5, 13
+    [4, 12].forEach(i => {
+
+      rows[1]
+        .querySelectorAll(".step")[i]
+        .classList.add("active");
+
+    });
+
+
+    // Hi-hat: every other step
+    for (
+      let i = 0;
+      i < 16;
+      i += 2
+    ) {
+
+      rows[2]
+        .querySelectorAll(".step")[i]
+        .classList.add("active");
+
+    }
+
+  </script>
+
+</body>
+</html>
+```
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>BeatLab — Drum Machine</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #111;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+
+    nav {
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6%;
+      background: #181818;
+      border-bottom: 1px solid #333;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #ff5c35;
+    }
+
+    nav a {
+      color: #aaa;
+      text-decoration: none;
+      margin-left: 25px;
+    }
+
+    nav a:hover {
+      color: white;
+    }
+
+    /* HERO */
+
+    .hero {
+      text-align: center;
+      padding: 70px 20px 45px;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: 1;
+      margin-bottom: 15px;
+    }
+
+    .hero h1 span {
+      color: #ff5c35;
+    }
+
+    .hero p {
+      color: #999;
+      font-size: 1.1rem;
+    }
+
+    /* MACHINE */
+
+    .machine {
+      width: 92%;
+      max-width: 1200px;
+      margin: auto;
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.4);
+    }
+
+    /* CONTROLS */
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 35px;
+    }
+
+    .transport {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .play {
+      background: #ff5c35;
+      color: white;
+      padding: 15px 28px;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .stop {
+      background: #333;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: .9;
+    }
+
+    .tempo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tempo input {
+      width: 180px;
+    }
+
+    .bpm {
+      font-size: 1.5rem;
+      font-weight: bold;
+      min-width: 80px;
+    }
+
+    /* SEQUENCER */
+
+    .sequencer {
+      overflow-x: auto;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 110px repeat(16, 1fr);
+      gap: 6px;
+      min-width: 900px;
+      margin-bottom: 8px;
+    }
+
+    .instrument {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      color: #ddd;
+    }
+
+    .step {
+      aspect-ratio: 1;
+      min-height: 42px;
+      border-radius: 6px;
+      background: #292929;
+      border: 1px solid #3a3a3a;
+      transition: .1s;
+    }
+
+    .step:hover {
+      background: #444;
+    }
+
+    .step.active {
+      background: #ff5c35;
+      border-color: #ff5c35;
+    }
+
+    .step.current {
+      box-shadow: 0 0 0 2px white inset;
+    }
+
+    /* BEAT NUMBERS */
+
+    .beat-numbers {
+      display: grid;
+      grid-template-columns: 110px repeat(16, 1fr);
+      gap: 6px;
+      min-width: 900px;
+      margin-bottom: 8px;
+    }
+
+    .beat-number {
+      text-align: center;
+      color: #777;
+      font-size: .75rem;
+    }
+
+    /* TOOLS */
+
+    .tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid #333;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .tool-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tool {
+      background: #292929;
+      color: #ddd;
+      padding: 11px 17px;
+      border-radius: 8px;
+    }
+
+    .tool:hover {
+      background: #3a3a3a;
+    }
+
+    /* HELP */
+
+    .help {
+      width: 92%;
+      max-width: 1000px;
+      margin: 70px auto;
+      text-align: center;
+    }
+
+    .help h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+
+    .help p {
+      color: #999;
+      margin-bottom: 30px;
+    }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .help-card {
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: 15px;
+      padding: 25px;
+    }
+
+    .help-card h3 {
+      margin-bottom: 10px;
+      color: #ff5c35;
+    }
+
+    .help-card p {
+      margin: 0;
+      font-size: .95rem;
+    }
+
+    /* FOOTER */
+
+    footer {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+      border-top: 1px solid #222;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 700px) {
+
+      nav a {
+        display: none;
+      }
+
+      .machine {
+        padding: 18px;
+      }
+
+      .help-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+
+  <nav>
+
+    <div class="logo">
+      Beat<span>Lab</span> 🥁
+    </div>
+
+    <div>
+      <a href="#machine">Drum Machine</a>
+      <a href="#learn">How It Works</a>
+    </div>
+
+  </nav>
+
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <h1>Make a <span>Beat.</span></h1>
+
+    <p>
+      Build drum patterns, experiment with rhythm,
+      and make your own groove.
+    </p>
+
+  </section>
+
+
+  <!-- DRUM MACHINE -->
+
+  <main class="machine" id="machine">
+
+    <!-- CONTROLS -->
+
+    <div class="controls">
+
+      <div class="transport">
+
+        <button class="play" id="playButton">
+          ▶ Play
+        </button>
+
+        <button class="stop" id="stopButton">
+          ■ Stop
+        </button>
+
+      </div>
+
+
+      <div class="tempo">
+
+        <strong>BPM</strong>
+
+        <input
+          type="range"
+          id="tempo"
+          min="60"
+          max="180"
+          value="100"
+        >
+
+        <div class="bpm" id="bpmValue">
+          100
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- SEQUENCER -->
+
+    <div class="sequencer">
+
+      <div class="beat-numbers">
+
+        <div></div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+        <div class="beat-number">1</div>
+        <div class="beat-number">2</div>
+        <div class="beat-number">3</div>
+        <div class="beat-number">4</div>
+
+      </div>
+
+
+      <!-- KICK -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🥁 Kick
+        </div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+        <div class="step" data-sound="kick"></div>
+
+      </div>
+
+
+      <!-- SNARE -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🥁 Snare
+        </div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+        <div class="step" data-sound="snare"></div>
+
+      </div>
+
+
+      <!-- HI-HAT -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🔔 Hi-Hat
+        </div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+        <div class="step" data-sound="hat"></div>
+
+      </div>
+
+
+      <!-- CLAP -->
+
+      <div class="row">
+
+        <div class="instrument">
+          👏 Clap
+        </div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+        <div class="step" data-sound="clap"></div>
+
+      </div>
+
+
+      <!-- PERCUSSION -->
+
+      <div class="row">
+
+        <div class="instrument">
+          🪘 Perc
+        </div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+        <div class="step" data-sound="perc"></div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TOOLS -->
+
+    <div class="tools">
+
+      <div class="tool-buttons">
+
+        <button class="tool" id="randomButton">
+          🎲 Random Beat
+        </button>
+
+        <button class="tool" id="clearButton">
+          Clear
+        </button>
+
+      </div>
+
+      <div>
+        <span style="color:#777">
+          Click the squares to build your beat
+        </span>
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- LEARNING -->
+
+  <section class="help" id="learn">
+
+    <h2>Learn the Basics</h2>
+
+    <p>
+      You don't need to be a drummer to start making beats.
+    </p>
+
+
+    <div class="help-grid">
+
+      <div class="help-card">
+
+        <h3>🥁 Kick</h3>
+
+        <p>
+          The kick creates the main pulse of your beat.
+          Try placing it on steps 1 and 9.
+        </p>
+
+      </div>
+
+
+      <div class="help-card">
+
+        <h3>👏 Snare</h3>
+
+        <p>
+          The snare usually hits on beats 2 and 4.
+          This gives the groove its backbeat.
+        </p>
+
+      </div>
+
+
+      <div class="help-card">
+
+        <h3>🔔 Hi-Hat</h3>
+
+        <p>
+          Hi-hats fill the spaces between kicks and snares.
+          Try activating every other step.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <footer>
+
+    <p>
+      BeatLab 🥁 — Make something that sounds good.
+    </p>
+
+  </footer>
+
+
+  <script>
+
+    /*
+      AUDIO ENGINE
+      Uses the browser's Web Audio API
+      so the drum sounds are generated
+      directly in the browser.
+    */
+
+    let audioContext;
+
+    let isPlaying = false;
+
+    let currentStep = 0;
+
+    let timer;
+
+    const steps = 16;
+
+
+    const tempoSlider =
+      document.getElementById("tempo");
+
+    const bpmValue =
+      document.getElementById("bpmValue");
+
+
+    /* TEMPO */
+
+    tempoSlider.addEventListener("input", () => {
+
+      bpmValue.textContent =
+        tempoSlider.value;
+
+    });
+
+
+    /* AUDIO CONTEXT */
+
+    function getAudioContext() {
+
+      if (!audioContext) {
+
+        audioContext =
+          new (window.AudioContext ||
+          window.webkitAudioContext)();
+
+      }
+
+      return audioContext;
+
+    }
+
+
+    /* KICK */
+
+    function playKick() {
+
+      const ctx = getAudioContext();
+
+      const oscillator =
+        ctx.createOscillator();
+
+      const gain =
+        ctx.createGain();
+
+      oscillator.type = "sine";
+
+      oscillator.frequency.setValueAtTime(
+        150,
+        ctx.currentTime
+      );
+
+      oscillator.frequency.exponentialRampToValueAtTime(
+        50,
+        ctx.currentTime + 0.12
+      );
+
+      gain.gain.setValueAtTime(
+        1,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + 0.3
+      );
+
+      oscillator.connect(gain);
+
+      gain.connect(ctx.destination);
+
+      oscillator.start();
+
+      oscillator.stop(
+        ctx.currentTime + 0.3
+      );
+
+    }
+
+
+    /* SNARE */
+
+    function playSnare() {
+
+      const ctx = getAudioContext();
+
+      const bufferSize =
+        ctx.sampleRate * 0.2;
+
+      const buffer =
+        ctx.createBuffer(
+          1,
+          bufferSize,
+          ctx.sampleRate
+        );
+
+      const data =
+        buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+
+        data[i] =
+          Math.random() * 2 - 1;
+
+      }
+
+      const noise =
+        ctx.createBufferSource();
+
+      noise.buffer = buffer;
+
+      const gain =
+        ctx.createGain();
+
+      gain.gain.setValueAtTime(
+        .5,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .2
+      );
+
+      noise.connect(gain);
+
+      gain.connect(ctx.destination);
+
+      noise.start();
+
+    }
+
+
+    /* HI HAT */
+
+    function playHat() {
+
+      const ctx = getAudioContext();
+
+      const bufferSize =
+        ctx.sampleRate * 0.08;
+
+      const buffer =
+        ctx.createBuffer(
+          1,
+          bufferSize,
+          ctx.sampleRate
+        );
+
+      const data =
+        buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+
+        data[i] =
+          Math.random() * 2 - 1;
+
+      }
+
+      const noise =
+        ctx.createBufferSource();
+
+      noise.buffer = buffer;
+
+      const filter =
+        ctx.createBiquadFilter();
+
+      filter.type = "highpass";
+
+      filter.frequency.value = 5000;
+
+      const gain =
+        ctx.createGain();
+
+      gain.gain.setValueAtTime(
+        .25,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .08
+      );
+
+      noise
+        .connect(filter)
+        .connect(gain)
+        .connect(ctx.destination);
+
+      noise.start();
+
+    }
+
+
+    /* CLAP */
+
+    function playClap() {
+
+      playSnare();
+
+      setTimeout(
+        playSnare,
+        25
+      );
+
+      setTimeout(
+        playSnare,
+        50
+      );
+
+    }
+
+
+    /* PERCUSSION */
+
+    function playPerc() {
+
+      const ctx = getAudioContext();
+
+      const oscillator =
+        ctx.createOscillator();
+
+      const gain =
+        ctx.createGain();
+
+      oscillator.type = "triangle";
+
+      oscillator.frequency.value = 500;
+
+      gain.gain.setValueAtTime(
+        .35,
+        ctx.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .12
+      );
+
+      oscillator
+        .connect(gain)
+        .connect(ctx.destination);
+
+      oscillator.start();
+
+      oscillator.stop(
+        ctx.currentTime + .12
+      );
+
+    }
+
+
+    /* PLAY SOUND */
+
+    function playSound(sound) {
+
+      if (sound === "kick")
+        playKick();
+
+      if (sound === "snare")
+        playSnare();
+
+      if (sound === "hat")
+        playHat();
+
+      if (sound === "clap")
+        playClap();
+
+      if (sound === "perc")
+        playPerc();
+
+    }
+
+
+    /* GET ALL STEPS */
+
+    function getRows() {
+
+      return document.querySelectorAll(".row");
+
+    }
+
+
+    /* PLAY STEP */
+
+    function playStep() {
+
+      const rows =
+        getRows();
+
+      rows.forEach(row => {
+
+        const stepElements =
+          row.querySelectorAll(".step");
+
+        stepElements.forEach(
+          step => step.classList.remove("current")
+        );
+
+        const current =
+          stepElements[currentStep];
+
+        current.classList.add("current");
+
+        if (current.classList.contains("active")) {
+
+          playSound(
+            current.dataset.sound
+          );
+
+        }
+
+      });
+
+      currentStep++;
+
+      if (currentStep >= steps) {
+
+        currentStep = 0;
+
+      }
+
+    }
+
+
+    /* START */
+
+    function start() {
+
+      if (isPlaying)
+        return;
+
+      getAudioContext();
+
+      isPlaying = true;
+
+      currentStep = 0;
+
+      const bpm =
+        Number(tempoSlider.value);
+
+      const interval =
+        60000 / bpm / 4;
+
+      playStep();
+
+      timer =
+        setInterval(
+          playStep,
+          interval
+        );
+
+      document.getElementById(
+        "playButton"
+      ).textContent = "⏸ Playing";
+
+    }
+
+
+    /* STOP */
+
+    function stop() {
+
+      isPlaying = false;
+
+      clearInterval(timer);
+
+      document.querySelectorAll(".step")
+        .forEach(step => {
+
+          step.classList.remove("current");
+
+        });
+
+      document.getElementById(
+        "playButton"
+      ).textContent = "▶ Play";
+
+    }
+
+
+    /* PLAY BUTTON */
+
+    document.getElementById(
+      "playButton"
+    ).addEventListener(
+      "click",
+      () => {
+
+        if (isPlaying) {
+
+          stop();
+
+        } else {
+
+          start();
+
+        }
+
+      }
+    );
+
+
+    /* STOP BUTTON */
+
+    document.getElementById(
+      "stopButton"
+    ).addEventListener(
+      "click",
+      stop
+    );
+
+
+    /* STEP CLICK */
+
+    document.querySelectorAll(".step")
+      .forEach(step => {
+
+        step.addEventListener(
+          "click",
+          () => {
+
+            step.classList.toggle("active");
+
+            playSound(
+              step.dataset.sound
+            );
+
+          }
+        );
+
+      });
+
+
+    /* CLEAR */
+
+    document.getElementById(
+      "clearButton"
+    ).addEventListener(
+      "click",
+      () => {
+
+        document.querySelectorAll(".step")
+          .forEach(step => {
+
+            step.classList.remove("active");
+
+          });
+
+      }
+    );
+
+
+    /* RANDOM BEAT */
+
+    document.getElementById(
+      "randomButton"
+    ).addEventListener(
+      "click",
+      () => {
+
+        document.querySelectorAll(".step")
+          .forEach(step => {
+
+            step.classList.remove("active");
+
+            if (Math.random() < .25) {
+
+              step.classList.add("active");
+
+            }
+
+          });
+
+      }
+    );
+
+
+    /* DEFAULT BEAT */
+
+    const rows =
+      document.querySelectorAll(".row");
+
+
+    // Kick: 1, 5, 9, 13
+    [0, 4, 8, 12].forEach(i => {
+
+      rows[0]
+        .querySelectorAll(".step")[i]
+        .classList.add("active");
+
+    });
+
+
+    // Snare: 5, 13
+    [4, 12].forEach(i => {
+
+      rows[1]
+        .querySelectorAll(".step")[i]
+        .classList.add("active");
+
+    });
+
+
+    // Hi-hat: every other step
+    for (
+      let i = 0;
+      i < 16;
+      i += 2
+    ) {
+
+      rows[2]
+        .querySelectorAll(".step")[i]
+        .classList.add("active");
+
+    }
+
+  </script>
+
+</body>
+</html>
+```
