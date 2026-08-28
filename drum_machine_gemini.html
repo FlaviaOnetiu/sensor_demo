@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Beat Academy</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-active: #0284c7;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --kick-color: #ef4444;
+      --snare-color: #3b82f6;
+      --hihat-color: #eab308;
+      --clap-color: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Lesson Section */
+    .lesson-box h2 {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .lesson-box p {
+      color: #cbd5e1;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .lesson-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Machine Controls */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: #334155;
+      color: var(--text);
+    }
+
+    button.secondary:hover {
+      background: #475569;
+    }
+
+    .bpm-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    .bpm-control input {
+      accent-color: var(--accent);
+    }
+
+    /* Sequencer Grid */
+    .sequencer {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .track {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .track-label {
+      width: 80px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .steps {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .step {
+      aspect-ratio: 1;
+      flex: 1;
+      min-width: 28px;
+      max-width: 44px;
+      background: #334155;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+    }
+
+    .step.quarter-note {
+      border-left: 2px solid #64748b;
+    }
+
+    /* Instrument Colors when active */
+    .track[data-inst="kick"] .step.active { background: var(--kick-color); box-shadow: 0 0 8px var(--kick-color); }
+    .track[data-inst="snare"] .step.active { background: var(--snare-color); box-shadow: 0 0 8px var(--snare-color); }
+    .track[data-inst="hihat"] .step.active { background: var(--hihat-color); box-shadow: 0 0 8px var(--hihat-color); }
+    .track[data-inst="clap"] .step.active { background: var(--clap-color); box-shadow: 0 0 8px var(--clap-color); }
+
+    .step.playing {
+      transform: scale(1.15);
+      border: 2px solid #fff;
+    }
+
+    /* Visualizer */
+    .visualizer {
+      display: flex;
+      gap: 6px;
+      margin-left: 88px;
+    }
+
+    .vis-step {
+      flex: 1;
+      height: 4px;
+      background: #334155;
+      border-radius: 2px;
+    }
+
+    .vis-step.active {
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Beat Academy</h1>
+    <p class="subtitle">Learn rhythm fundamentals with a Web Audio drum machine</p>
+  </header>
+
+  <div class="container">
+    <!-- Interactive Lesson Card -->
+    <div class="card lesson-box">
+      <h2 id="lesson-title">Lesson 1: The Four-on-the-Floor</h2>
+      <p id="lesson-desc">Loading lesson...</p>
+      <div class="lesson-controls">
+        <button id="prev-lesson" class="secondary">Previous</button>
+        <button id="next-lesson">Next Lesson</button>
+        <button id="load-preset" class="secondary">Load Example</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="card controls">
+      <div class="btn-group">
+        <button id="play-btn">Play</button>
+        <button id="clear-btn" class="secondary">Clear</button>
+      </div>
+      <div class="bpm-control">
+        <label for="bpm">BPM: <span id="bpm-val">120</span></label>
+        <input type="range" id="bpm" min="60" max="180" value="120">
+      </div>
+    </div>
+
+    <!-- Sequencer -->
+    <div class="card">
+      <div class="sequencer" id="sequencer">
+        <!-- Visualizer Bar -->
+        <div class="visualizer" id="visualizer"></div>
+        <!-- Tracks rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Audio Context Setup
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    // Drum Sound Synthesizers (Web Audio API)
+    const playSound = (type) => {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'kick') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.5);
+        gain.gain.setValueAtTime(1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.5);
+      } else if (type === 'snare') {
+        // Noise buffer for snare snap
+        const bufferSize = audioCtx.sampleRate * 0.2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 1000;
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start(now);
+      } else if (type === 'hihat') {
+        // High-pass filtered noise for cymbal sizzle
+        const bufferSize = audioCtx.sampleRate * 0.05;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 7000;
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start(now);
+      } else if (type === 'clap') {
+        const bufferSize = audioCtx.sampleRate * 0.2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1200;
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start(now);
+      }
+    };
+
+    // Lessons Data
+    const lessons = [
+      {
+        title: "1. The Four-on-the-Floor",
+        desc: "The foundation of dance music! In 4/4 time, we count 1 - 2 - 3 - 4. Place a <b>Kick drum</b> on every main beat (steps 1, 5, 9, 13) to drive the pulse forward.",
+        preset: {
+          kick: [0, 4, 8, 12],
+          snare: [],
+          hihat: [],
+          clap: []
+        }
+      },
+      {
+        title: "2. Adding the Backbeat",
+        desc: "Popular music thrives on tension and release. Adding a <b>Snare</b> or <b>Clap</b> on beats 2 and 4 (steps 5 and 13) creates the classic 'backbeat' found in Pop, Rock, and Hip-Hop.",
+        preset: {
+          kick: [0, 4, 8, 12],
+          snare: [4, 12],
+          hihat: [],
+          clap: []
+        }
+      },
+      {
+        title: "3. Off-Beat High Hats",
+        desc: "To add energy and momentum, add <b>Hi-Hats</b> right in between the main beats (steps 3, 7, 11, 15). These are called <i>eighth-note off-beats</i>.",
+        preset: {
+          kick: [0, 4, 8, 12],
+          snare: [4, 12],
+          hihat: [2, 6, 10, 14],
+          clap: []
+        }
+      },
+      {
+        title: "4. Syncopation & Accents",
+        desc: "Syncopation means hitting notes off the expected grid. Try adding a second kick step right before beat 3 (step 7) and a clap overlay on beat 4 to give the groove extra bounce!",
+        preset: {
+          kick: [0, 6, 8, 12],
+          snare: [4, 12],
+          hihat: [0, 2, 4, 6, 8, 10, 12, 14],
+          clap: [12]
+        }
+      }
+    ];
+
+    // State Variables
+    const instruments = ['kick', 'snare', 'hihat', 'clap'];
+    const totalSteps = 16;
+    let grid = {
+      kick: Array(totalSteps).fill(false),
+      snare: Array(totalSteps).fill(false),
+      hihat: Array(totalSteps).fill(false),
+      clap: Array(totalSteps).fill(false)
+    };
+
+    let isPlaying = false;
+    let currentStep = 0;
+    let bpm = 120;
+    let currentLessonIdx = 0;
+    let timerId = null;
+
+    // DOM Elements
+    const sequencerEl = document.getElementById('sequencer');
+    const visualizerEl = document.getElementById('visualizer');
+    const playBtn = document.getElementById('play-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const bpmInput = document.getElementById('bpm');
+    const bpmVal = document.getElementById('bpm-val');
+    const lessonTitle = document.getElementById('lesson-title');
+    const lessonDesc = document.getElementById('lesson-desc');
+    const prevLessonBtn = document.getElementById('prev-lesson');
+    const nextLessonBtn = document.getElementById('next-lesson');
+    const loadPresetBtn = document.getElementById('load-preset');
+
+    // Render Grid UI
+    function initUI() {
+      // Build Visualizer Top Bar
+      visualizerEl.innerHTML = '';
+      for (let i = 0; i < totalSteps; i++) {
+        const visStep = document.createElement('div');
+        visStep.classList.add('vis-step');
+        visStep.dataset.step = i;
+        visualizerEl.appendChild(visStep);
+      }
+
+      // Build Sequencer Rows
+      instruments.forEach(inst => {
+        const track = document.createElement('div');
+        track.classList.add('track');
+        track.dataset.inst = inst;
+
+        const label = document.createElement('div');
+        label.classList.add('track-label');
+        label.textContent = inst;
+        track.appendChild(label);
+
+        const stepsContainer = document.createElement('div');
+        stepsContainer.classList.add('steps');
+
+        for (let i = 0; i < totalSteps; i++) {
+          const step = document.createElement('div');
+          step.classList.add('step');
+          if (i % 4 === 0) step.classList.add('quarter-note');
+          step.dataset.step = i;
+          step.dataset.inst = inst;
+
+          step.addEventListener('click', () => toggleStep(inst, i));
+          stepsContainer.appendChild(step);
+        }
+
+        track.appendChild(stepsContainer);
+        sequencerEl.appendChild(track);
+      });
+
+      loadLesson(0);
+    }
+
+    // Toggle active grid step
+    function toggleStep(inst, stepIdx) {
+      grid[inst][stepIdx] = !grid[inst][stepIdx];
+      updateGridUI();
+      if (grid[inst][stepIdx]) playSound(inst);
+    }
+
+    // Sync state to UI classes
+    function updateGridUI() {
+      instruments.forEach(inst => {
+        const steps = document.querySelectorAll(`.track[data-inst="${inst}"] .step`);
+        steps.forEach((step, idx) => {
+          step.classList.toggle('active', grid[inst][idx]);
+        });
+      });
+    }
+
+    // Audio Playhead Loop
+    function runSequencer() {
+      const stepTime = (60 / bpm / 4) * 1000;
+
+      // Reset previous step highlights
+      document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+      document.querySelectorAll('.vis-step.active').forEach(el => el.classList.remove('active'));
+
+      // Highlight current step
+      instruments.forEach(inst => {
+        const stepEl = document.querySelector(`.track[data-inst="${inst}"] .step[data-step="${currentStep}"]`);
+        if (stepEl) stepEl.classList.add('playing');
+        
+        // Trigger Sound
+        if (grid[inst][currentStep]) {
+          playSound(inst);
+        }
+      });
+
+      const visEl = document.querySelector(`.vis-step[data-step="${currentStep}"]`);
+      if (visEl) visEl.classList.add('active');
+
+      currentStep = (currentStep + 1) % totalSteps;
+      timerId = setTimeout(runSequencer, stepTime);
+    }
+
+    // Playback Controls
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        playBtn.textContent = 'Pause';
+        playBtn.style.background = '#ef4444';
+        currentStep = 0;
+        runSequencer();
+      } else {
+        playBtn.textContent = 'Play';
+        playBtn.style.background = 'var(--accent)';
+        clearTimeout(timerId);
+        document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+        document.querySelectorAll('.vis-step.active').forEach(el => el.classList.remove('active'));
+      }
+    }
+
+    function clearGrid() {
+      instruments.forEach(inst => grid[inst].fill(false));
+      updateGridUI();
+    }
+
+    // Educational Lessons Logic
+    function loadLesson(idx) {
+      currentLessonIdx = idx;
+      const lesson = lessons[idx];
+      lessonTitle.textContent = lesson.title;
+      lessonDesc.innerHTML = lesson.desc;
+
+      prevLessonBtn.disabled = idx === 0;
+      nextLessonBtn.disabled = idx === lessons.length - 1;
+
+      applyPreset(lesson.preset);
+    }
+
+    function applyPreset(preset) {
+      clearGrid();
+      instruments.forEach(inst => {
+        if (preset[inst]) {
+          preset[inst].forEach(stepIdx => {
+            grid[inst][stepIdx] = true;
+          });
+        }
+      });
+      updateGridUI();
+    }
+
+    // Event Listeners
+    playBtn.addEventListener('click', togglePlay);
+    clearBtn.addEventListener('click', clearGrid);
+
+    bpmInput.addEventListener('input', (e) => {
+      bpm = e.target.value;
+      bpmVal.textContent = bpm;
+    });
+
+    prevLessonBtn.addEventListener('click', () => {
+      if (currentLessonIdx > 0) loadLesson(currentLessonIdx - 1);
+    });
+
+    nextLessonBtn.addEventListener('click', () => {
+      if (currentLessonIdx < lessons.length - 1) loadLesson(currentLessonIdx + 1);
+    });
+
+    loadPresetBtn.addEventListener('click', () => {
+      applyPreset(lessons[currentLessonIdx].preset);
+    });
+
+    // Initialize App
+    initUI();
+  </script>
+</body>
+</html>
