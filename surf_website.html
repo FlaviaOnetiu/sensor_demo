@@ -1,0 +1,1399 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>WaveWatch | Surf Conditions</title>
+
+  <style>
+
+    /* =========================
+       BASIC SETUP
+    ========================= */
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f6f0e4;
+      color: #173f4a;
+      line-height: 1.5;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+
+    /* =========================
+       NAVIGATION
+    ========================= */
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 15px 5%;
+
+      background: rgba(246, 240, 228, 0.96);
+      border-bottom: 1px solid #ddd2bf;
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .logo span {
+      color: #d46f45;
+    }
+
+    nav a {
+      color: #173f4a;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-left: 15px;
+    }
+
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .hero {
+      min-height: 75vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      text-align: center;
+
+      padding: 60px 20px;
+
+      color: white;
+
+      background:
+        linear-gradient(
+          rgba(12, 61, 72, 0.45),
+          rgba(12, 61, 72, 0.55)
+        ),
+        url("https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=1800&q=80")
+        center / cover;
+    }
+
+    .hero-content {
+      max-width: 750px;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 13vw, 6rem);
+      line-height: 0.95;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: clamp(1rem, 4vw, 1.25rem);
+      margin-bottom: 30px;
+    }
+
+    .main-button {
+      display: inline-block;
+
+      background: #d46f45;
+      color: white;
+
+      padding: 14px 25px;
+
+      border-radius: 30px;
+
+      text-decoration: none;
+      font-weight: bold;
+
+      border: none;
+
+      cursor: pointer;
+    }
+
+    .main-button:active {
+      transform: scale(0.97);
+    }
+
+
+    /* =========================
+       GENERAL SECTIONS
+    ========================= */
+
+    section {
+      padding: 60px 5%;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .section-title h2 {
+      font-size: clamp(2rem, 7vw, 2.8rem);
+      margin-bottom: 8px;
+    }
+
+    .section-title p {
+      color: #627d82;
+    }
+
+
+    /* =========================
+       SURF TRACKER
+    ========================= */
+
+    .tracker {
+      background: #dceff0;
+    }
+
+    .tracker-box {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+
+    select {
+      min-width: 220px;
+
+      padding: 13px 15px;
+
+      border-radius: 10px;
+
+      border: 1px solid #b7ccce;
+
+      background: white;
+      color: #173f4a;
+    }
+
+    .update-button {
+      padding: 13px 20px;
+
+      border: none;
+      border-radius: 10px;
+
+      background: #173f4a;
+      color: white;
+
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+
+    /* =========================
+       CURRENT CONDITIONS
+    ========================= */
+
+    .conditions {
+      background: white;
+
+      border-radius: 20px;
+
+      padding: 25px;
+
+      box-shadow: 0 10px 30px rgba(23,63,74,0.08);
+    }
+
+    .spot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 15px;
+
+      margin-bottom: 25px;
+    }
+
+    .spot-name {
+      font-size: clamp(1.5rem, 6vw, 2.2rem);
+      font-weight: bold;
+    }
+
+    .updated {
+      color: #789095;
+      font-size: 0.8rem;
+    }
+
+    .rating {
+      white-space: nowrap;
+
+      padding: 8px 14px;
+
+      border-radius: 30px;
+
+      background: #c9e7a9;
+      color: #2f5423;
+
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+
+    /* =========================
+       CONDITION CARDS
+    ========================= */
+
+    .data-grid {
+      display: grid;
+
+      grid-template-columns: repeat(2, 1fr);
+
+      gap: 12px;
+    }
+
+    .data-card {
+      background: #f6f0e4;
+
+      border-radius: 15px;
+
+      padding: 20px 10px;
+
+      text-align: center;
+    }
+
+    .data-icon {
+      font-size: 1.8rem;
+    }
+
+    .data-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+
+      margin: 5px 0;
+    }
+
+    .data-label {
+      color: #627d82;
+      font-size: 0.8rem;
+    }
+
+
+    /* =========================
+       SURF SCORE
+    ========================= */
+
+    .surf-score {
+      margin-top: 20px;
+
+      padding: 20px;
+
+      border-radius: 15px;
+
+      background: #173f4a;
+      color: white;
+
+      text-align: center;
+    }
+
+    .surf-score h3 {
+      font-size: 1.3rem;
+      margin-bottom: 5px;
+    }
+
+    .score {
+      font-size: 2.5rem;
+      font-weight: bold;
+
+      color: #ffd58a;
+    }
+
+
+    /* =========================
+       HOURLY FORECAST
+    ========================= */
+
+    .forecast {
+      margin-top: 25px;
+    }
+
+    .forecast h3 {
+      margin-bottom: 12px;
+    }
+
+    .forecast-scroll {
+      display: flex;
+
+      gap: 10px;
+
+      overflow-x: auto;
+
+      padding-bottom: 5px;
+
+      scrollbar-width: thin;
+    }
+
+    .forecast-card {
+      flex: 0 0 85px;
+
+      background: #eaf5f5;
+
+      border-radius: 12px;
+
+      padding: 14px 8px;
+
+      text-align: center;
+    }
+
+    .forecast-time {
+      font-weight: bold;
+      font-size: 0.8rem;
+    }
+
+    .forecast-wave {
+      font-size: 1.3rem;
+      margin: 5px 0;
+    }
+
+    .forecast-height {
+      font-size: 0.8rem;
+    }
+
+
+    /* =========================
+       SHOULD I SURF?
+    ========================= */
+
+    .decision {
+      background: #f6f0e4;
+    }
+
+    .decision-box {
+      max-width: 800px;
+      margin: auto;
+
+      background: white;
+
+      padding: 30px 20px;
+
+      border-radius: 20px;
+
+      text-align: center;
+
+      box-shadow: 0 10px 30px rgba(23,63,74,0.08);
+    }
+
+    .level-buttons {
+      display: flex;
+
+      gap: 8px;
+
+      justify-content: center;
+
+      flex-wrap: wrap;
+
+      margin: 20px 0;
+    }
+
+    .level-button {
+      padding: 11px 18px;
+
+      border-radius: 25px;
+
+      border: 2px solid #173f4a;
+
+      background: white;
+
+      color: #173f4a;
+
+      cursor: pointer;
+
+      font-weight: bold;
+    }
+
+    .level-button.active {
+      background: #173f4a;
+      color: white;
+    }
+
+    .decision-result {
+      padding: 25px;
+
+      border-radius: 15px;
+
+      background: #eaf5f5;
+    }
+
+    .decision-result h3 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+
+    /* =========================
+       LEARN SECTION
+    ========================= */
+
+    .learn {
+      background: #dceff0;
+    }
+
+    .lesson-grid {
+      max-width: 1000px;
+      margin: auto;
+
+      display: grid;
+
+      grid-template-columns: repeat(2, 1fr);
+
+      gap: 15px;
+    }
+
+    .lesson-card {
+      background: white;
+
+      padding: 25px;
+
+      border-radius: 17px;
+    }
+
+    .lesson-card h3 {
+      color: #d46f45;
+      margin-bottom: 8px;
+    }
+
+    .lesson-card ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    .lesson-card li {
+      margin-bottom: 5px;
+    }
+
+
+    /* =========================
+       SAFETY
+    ========================= */
+
+    .safety {
+      background: #173f4a;
+      color: white;
+    }
+
+    .safety .section-title p {
+      color: #b7ced1;
+    }
+
+    .safety-grid {
+      max-width: 1000px;
+      margin: auto;
+
+      display: grid;
+
+      grid-template-columns: repeat(3, 1fr);
+
+      gap: 15px;
+    }
+
+    .safety-card {
+      border: 1px solid rgba(255,255,255,0.2);
+
+      border-radius: 15px;
+
+      padding: 22px;
+    }
+
+    .safety-card h3 {
+      margin-bottom: 8px;
+    }
+
+    .safety-card p {
+      color: #c3d4d6;
+      font-size: 0.9rem;
+    }
+
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    footer {
+      text-align: center;
+
+      padding: 30px 20px;
+
+      background: #102f38;
+
+      color: #b7ced1;
+
+      font-size: 0.85rem;
+    }
+
+
+    /* =========================
+       PHONE
+    ========================= */
+
+    @media (max-width: 600px) {
+
+      nav {
+        padding: 13px 5%;
+      }
+
+      nav a {
+        font-size: 0.75rem;
+        margin-left: 8px;
+      }
+
+      .hero {
+        min-height: 70vh;
+      }
+
+      section {
+        padding: 50px 4%;
+      }
+
+      .conditions {
+        padding: 18px;
+      }
+
+      .spot-header {
+        align-items: flex-start;
+      }
+
+      .rating {
+        font-size: 0.75rem;
+        padding: 7px 10px;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      select,
+      .update-button {
+        width: 100%;
+      }
+
+      .lesson-grid,
+      .safety-grid {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+
+    /* =========================
+       VERY SMALL PHONES
+    ========================= */
+
+    @media (max-width: 380px) {
+
+      .data-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        font-size: 3rem;
+      }
+
+      .spot-header {
+        flex-direction: column;
+      }
+
+    }
+
+  </style>
+</head>
+
+
+<body>
+
+
+  <!-- =========================
+       NAV
+  ========================= -->
+
+  <nav>
+
+    <div class="logo">
+      Wave<span>Watch</span> 🌊
+    </div>
+
+    <div>
+      <a href="#tracker">Waves</a>
+      <a href="#learn">Learn</a>
+    </div>
+
+  </nav>
+
+
+  <!-- =========================
+       HERO
+  ========================= -->
+
+  <header class="hero">
+
+    <div class="hero-content">
+
+      <h1>
+        Know Your Waves.
+      </h1>
+
+      <p>
+        Understand the ocean, find better waves,
+        and surf with confidence.
+      </p>
+
+      <a
+        href="#tracker"
+        class="main-button"
+      >
+        Check Conditions
+      </a>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================
+       SURF TRACKER
+  ========================= -->
+
+  <section
+    id="tracker"
+    class="tracker"
+  >
+
+    <div class="section-title">
+
+      <h2>🌊 Wave Tracker</h2>
+
+      <p>
+        Check the conditions at your favorite beach.
+      </p>
+
+    </div>
+
+
+    <div class="tracker-box">
+
+      <div class="controls">
+
+        <select id="spotSelect">
+
+          <option value="nokomis">
+            Nokomis Beach
+          </option>
+
+          <option value="venice">
+            Venice Beach
+          </option>
+
+          <option value="lido">
+            Lido Beach
+          </option>
+
+          <option value="cocoa">
+            Cocoa Beach
+          </option>
+
+        </select>
+
+
+        <button
+          class="update-button"
+          onclick="updateConditions()"
+        >
+          Update Conditions
+        </button>
+
+      </div>
+
+
+      <div class="conditions">
+
+        <div class="spot-header">
+
+          <div>
+
+            <div
+              class="spot-name"
+              id="spotName"
+            >
+              Nokomis Beach
+            </div>
+
+            <div
+              class="updated"
+              id="updated"
+            >
+              Updated just now
+            </div>
+
+          </div>
+
+
+          <div
+            class="rating"
+            id="rating"
+          >
+            🟢 Good
+          </div>
+
+        </div>
+
+
+        <!-- DATA -->
+
+        <div class="data-grid">
+
+
+          <div class="data-card">
+
+            <div class="data-icon">
+              🌊
+            </div>
+
+            <div
+              class="data-value"
+              id="waveHeight"
+            >
+              1.8 ft
+            </div>
+
+            <div class="data-label">
+              Wave Height
+            </div>
+
+          </div>
+
+
+          <div class="data-card">
+
+            <div class="data-icon">
+              ⏱️
+            </div>
+
+            <div
+              class="data-value"
+              id="period"
+            >
+              8 sec
+            </div>
+
+            <div class="data-label">
+              Wave Period
+            </div>
+
+          </div>
+
+
+          <div class="data-card">
+
+            <div class="data-icon">
+              💨
+            </div>
+
+            <div
+              class="data-value"
+              id="wind"
+            >
+              6 mph
+            </div>
+
+            <div class="data-label">
+              Wind
+            </div>
+
+          </div>
+
+
+          <div class="data-card">
+
+            <div class="data-icon">
+              🌡️
+            </div>
+
+            <div
+              class="data-value"
+              id="water"
+            >
+              83°F
+            </div>
+
+            <div class="data-label">
+              Water Temp
+            </div>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- SCORE -->
+
+        <div class="surf-score">
+
+          <h3>
+            Surf Score
+          </h3>
+
+          <div
+            class="score"
+            id="score"
+          >
+            7.5/10
+          </div>
+
+          <p id="scoreText">
+            Good conditions for smaller boards.
+          </p>
+
+        </div>
+
+
+        <!-- HOURLY -->
+
+        <div class="forecast">
+
+          <h3>
+            Today's Forecast
+          </h3>
+
+          <div class="forecast-scroll">
+
+
+            <div class="forecast-card">
+              <div class="forecast-time">10 AM</div>
+              <div class="forecast-wave">🌊</div>
+              <div class="forecast-height">1.7 ft</div>
+            </div>
+
+
+            <div class="forecast-card">
+              <div class="forecast-time">11 AM</div>
+              <div class="forecast-wave">🌊</div>
+              <div class="forecast-height">1.8 ft</div>
+            </div>
+
+
+            <div class="forecast-card">
+              <div class="forecast-time">12 PM</div>
+              <div class="forecast-wave">🌊</div>
+              <div class="forecast-height">2.0 ft</div>
+            </div>
+
+
+            <div class="forecast-card">
+              <div class="forecast-time">1 PM</div>
+              <div class="forecast-wave">🌊</div>
+              <div class="forecast-height">2.2 ft</div>
+            </div>
+
+
+            <div class="forecast-card">
+              <div class="forecast-time">2 PM</div>
+              <div class="forecast-wave">🌊</div>
+              <div class="forecast-height">2.3 ft</div>
+            </div>
+
+
+            <div class="forecast-card">
+              <div class="forecast-time">3 PM</div>
+              <div class="forecast-wave">🌊</div>
+              <div class="forecast-height">2.1 ft</div>
+            </div>
+
+
+            <div class="forecast-card">
+              <div class="forecast-time">4 PM</div>
+              <div class="forecast-wave">🌊</div>
+              <div class="forecast-height">1.9 ft</div>
+            </div>
+
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       SHOULD I SURF?
+  ========================= -->
+
+  <section class="decision">
+
+    <div class="section-title">
+
+      <h2>🏄 Should I Surf?</h2>
+
+      <p>
+        Tell us your experience level.
+      </p>
+
+    </div>
+
+
+    <div class="decision-box">
+
+      <div class="level-buttons">
+
+        <button
+          class="level-button active"
+          onclick="chooseLevel('beginner', this)"
+        >
+          Beginner
+        </button>
+
+        <button
+          class="level-button"
+          onclick="chooseLevel('intermediate', this)"
+        >
+          Intermediate
+        </button>
+
+        <button
+          class="level-button"
+          onclick="chooseLevel('advanced', this)"
+        >
+          Advanced
+        </button>
+
+      </div>
+
+
+      <div class="decision-result">
+
+        <h3 id="decisionTitle">
+          🟢 Yes — Good Day
+        </h3>
+
+        <p id="decisionText">
+          These smaller waves are a good opportunity
+          to practice your pop-up and wave timing.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       LEARN
+  ========================= -->
+
+  <section
+    id="learn"
+    class="learn"
+  >
+
+    <div class="section-title">
+
+      <h2>🧠 Learn to Surf</h2>
+
+      <p>
+        Understand the basics before you paddle out.
+      </p>
+
+    </div>
+
+
+    <div class="lesson-grid">
+
+
+      <div class="lesson-card">
+
+        <h3>
+          🏄 How to Pop Up
+        </h3>
+
+        <p>
+          Your pop-up should be quick and controlled.
+        </p>
+
+        <ul>
+          <li>Place hands beside your chest.</li>
+          <li>Push your body upward.</li>
+          <li>Bring your front foot forward.</li>
+          <li>Keep your knees bent.</li>
+          <li>Look toward the beach.</li>
+        </ul>
+
+      </div>
+
+
+      <div class="lesson-card">
+
+        <h3>
+          🌊 Catch a Wave
+        </h3>
+
+        <p>
+          Timing is one of the most important skills.
+        </p>
+
+        <ul>
+          <li>Watch the wave approach.</li>
+          <li>Turn toward shore.</li>
+          <li>Paddle early.</li>
+          <li>Feel the board accelerate.</li>
+          <li>Then pop up.</li>
+        </ul>
+
+      </div>
+
+
+      <div class="lesson-card">
+
+        <h3>
+          💨 Understand Wind
+        </h3>
+
+        <p>
+          Wind can completely change surf quality.
+        </p>
+
+        <ul>
+          <li>Offshore usually cleans waves up.</li>
+          <li>Onshore can create chop.</li>
+          <li>Light winds are often easier.</li>
+          <li>Check wind direction before paddling out.</li>
+        </ul>
+
+      </div>
+
+
+      <div class="lesson-card">
+
+        <h3>
+          ⏱️ Understand Period
+        </h3>
+
+        <p>
+          Wave period tells you how much time passes
+          between waves in a swell.
+        </p>
+
+        <ul>
+          <li>Short period = closer-spaced waves.</li>
+          <li>Long period = more powerful swell.</li>
+          <li>Longer period can mean stronger waves.</li>
+          <li>Always consider height and conditions together.</li>
+        </ul>
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       SAFETY
+  ========================= -->
+
+  <section class="safety">
+
+    <div class="section-title">
+
+      <h2>🛟 Ocean Safety</h2>
+
+      <p>
+        The ocean deserves respect.
+      </p>
+
+    </div>
+
+
+    <div class="safety-grid">
+
+
+      <div class="safety-card">
+
+        <h3>
+          🌪️ Rip Currents
+        </h3>
+
+        <p>
+          If caught in a rip, stay calm and avoid
+          fighting directly against the current.
+          Swim parallel to shore to escape it.
+        </p>
+
+      </div>
+
+
+      <div class="safety-card">
+
+        <h3>
+          👀 Know Your Limits
+        </h3>
+
+        <p>
+          Surf conditions can change quickly.
+          Choose waves that match your experience.
+        </p>
+
+      </div>
+
+
+      <div class="safety-card">
+
+        <h3>
+          🏄 Respect the Lineup
+        </h3>
+
+        <p>
+          Don't drop in on another surfer.
+          Communicate, take turns, and give others space.
+        </p>
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       FOOTER
+  ========================= -->
+
+  <footer>
+
+    <p>
+      🌊 WaveWatch
+    </p>
+
+    <p>
+      Built for surfers learning the ocean.
+    </p>
+
+  </footer>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================= -->
+
+  <script>
+
+    /* =========================
+       SURF SPOT DATA
+    ========================= */
+
+    const surfSpots = {
+
+      nokomis: {
+        name: "Nokomis Beach",
+        wave: "1.8 ft",
+        period: "8 sec",
+        wind: "6 mph",
+        water: "83°F",
+        rating: "🟢 Good",
+        score: "7.5/10",
+        message: "Good conditions for smaller boards."
+      },
+
+      venice: {
+        name: "Venice Beach",
+        wave: "2.1 ft",
+        period: "9 sec",
+        wind: "7 mph",
+        water: "82°F",
+        rating: "🟢 Good",
+        score: "8/10",
+        message: "Clean and manageable conditions."
+      },
+
+      lido: {
+        name: "Lido Beach",
+        wave: "2.4 ft",
+        period: "10 sec",
+        wind: "5 mph",
+        water: "82°F",
+        rating: "🟢 Good",
+        score: "8.5/10",
+        message: "Nice swell with lighter wind."
+      },
+
+      cocoa: {
+        name: "Cocoa Beach",
+        wave: "3.2 ft",
+        period: "11 sec",
+        wind: "10 mph",
+        water: "81°F",
+        rating: "🟡 Fair",
+        score: "6.5/10",
+        message: "More powerful waves and stronger wind."
+      }
+
+    };
+
+
+    /* =========================
+       UPDATE SURF CONDITIONS
+    ========================= */
+
+    function updateConditions() {
+
+      const selected =
+        document.getElementById("spotSelect").value;
+
+      const spot =
+        surfSpots[selected];
+
+
+      document.getElementById("spotName")
+        .textContent = spot.name;
+
+      document.getElementById("waveHeight")
+        .textContent = spot.wave;
+
+      document.getElementById("period")
+        .textContent = spot.period;
+
+      document.getElementById("wind")
+        .textContent = spot.wind;
+
+      document.getElementById("water")
+        .textContent = spot.water;
+
+      document.getElementById("rating")
+        .textContent = spot.rating;
+
+      document.getElementById("score")
+        .textContent = spot.score;
+
+      document.getElementById("scoreText")
+        .textContent = spot.message;
+
+      document.getElementById("updated")
+        .textContent =
+        "Updated just now";
+
+    }
+
+
+    /* =========================
+       EXPERIENCE LEVEL
+    ========================= */
+
+    function chooseLevel(level, button) {
+
+
+      document
+        .querySelectorAll(".level-button")
+        .forEach(btn => {
+
+          btn.classList.remove("active");
+
+        });
+
+
+      button.classList.add("active");
+
+
+      const title =
+        document.getElementById("decisionTitle");
+
+      const text =
+        document.getElementById("decisionText");
+
+
+      if (level === "beginner") {
+
+        title.textContent =
+          "🟢 Yes — Good Day";
+
+        text.textContent =
+          "These smaller waves are a good opportunity " +
+          "to practice your pop-up and wave timing.";
+
+      }
+
+
+      if (level === "intermediate") {
+
+        title.textContent =
+          "🟢 Good — Worth Surfing";
+
+        text.textContent =
+          "Look for the cleaner shoulders and work " +
+          "on your turns and positioning.";
+
+      }
+
+
+      if (level === "advanced") {
+
+        title.textContent =
+          "🟡 Depends on Your Goal";
+
+        text.textContent =
+          "The waves may be fun, but experienced surfers " +
+          "may want a stronger swell for more performance.";
+
+      }
+
+    }
+
+
+    /* =========================
+       AUTOMATIC TIME UPDATE
+    ========================= */
+
+    function updateTime() {
+
+      const now =
+        new Date();
+
+      document.getElementById("updated")
+        .textContent =
+        "Checked " +
+        now.toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit"
+        });
+
+    }
+
+
+  </script>
+
+</body>
+</html>
+```
